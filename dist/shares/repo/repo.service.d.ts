@@ -1,0 +1,36 @@
+import { DataSource, DeepPartial, EntityTarget, FindManyOptions, FindOneOptions, FindOptionsRelations, FindOptionsWhere, ObjectLiteral, Repository, SaveOptions } from 'typeorm';
+import { LoggerService } from '../../core/logger/logger.service.js';
+import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata.js';
+import { QueryDTO } from './dto/query.dto.js';
+export declare class RepoService {
+    readonly coreDataSource: DataSource;
+    readonly appDataSource: DataSource;
+    private rowPerPage;
+    private LOGGER;
+    constructor(coreDataSource: DataSource, appDataSource: DataSource, logger: LoggerService);
+    private getDataSource;
+    getManager<T extends ObjectLiteral>(entity: EntityTarget<T>): import("typeorm").EntityManager;
+    getModels(): string[];
+    getRepository<T extends ObjectLiteral>(entity: EntityTarget<T>): Repository<T>;
+    getFields<T extends ObjectLiteral>(entity: EntityTarget<T>): ColumnMetadata[];
+    getRelations<T extends ObjectLiteral>(entity: EntityTarget<T>): FindOptionsRelations<T>;
+    findOne<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOneOptions<T>, silent?: boolean): Promise<T | null>;
+    findOneWithRelations<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOneOptions<T>, silent?: false): Promise<T>;
+    findOneWithRelations<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOneOptions<T>, silent: true): Promise<T | null>;
+    findOneBy<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[], silent?: false): Promise<T>;
+    findOneBy<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[], silent: true): Promise<T | null>;
+    find<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindManyOptions<T>): Promise<T[]>;
+    findWithRelations<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindManyOptions): Promise<T[]>;
+    findBy<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[]): Promise<T[]>;
+    findByWithRelations<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[]): Promise<T[]>;
+    private buildSelect;
+    private addRelation;
+    private parseRelationField;
+    findWithRelationsAndPagination<T extends ObjectLiteral>(entity: EntityTarget<T>, options: QueryDTO, findOptions?: FindManyOptions<T>): Promise<[T[], number]>;
+    findWithPagination<T extends ObjectLiteral>(entity: EntityTarget<T>, options: QueryDTO, findOptions?: FindManyOptions<T>): Promise<[T[], number]>;
+    saveWithTransaction<T extends ObjectLiteral>(entity: EntityTarget<T>, data: DeepPartial<T>, options?: SaveOptions): Promise<T>;
+    updateWithTransaction<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[], data: DeepPartial<T> | DeepPartial<T>[], saveOptions?: SaveOptions): Promise<T | T[]>;
+    save<T extends ObjectLiteral>(entity: EntityTarget<T>, data: DeepPartial<T> | DeepPartial<T>[], options?: SaveOptions): Promise<T | T[]>;
+    update<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[], data: DeepPartial<T> | DeepPartial<T>[], saveOptions?: SaveOptions): Promise<T | T[]>;
+    delete<T extends ObjectLiteral>(entity: EntityTarget<T>, options: FindOptionsWhere<T> | FindOptionsWhere<T>[], soft?: boolean): Promise<T | T[]>;
+}

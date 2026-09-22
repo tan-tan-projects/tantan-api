@@ -8,7 +8,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { IsString, IsNotEmpty, IsArray, IsEmail } from "class-validator";
-export class CreateProjectRequestDTO {
+export class CreateDTO {
     business;
     goal;
     target_audience;
@@ -21,34 +21,34 @@ __decorate([
     IsString(),
     IsNotEmpty(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "business", void 0);
+], CreateDTO.prototype, "business", void 0);
 __decorate([
     IsString(),
     IsNotEmpty(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "goal", void 0);
+], CreateDTO.prototype, "goal", void 0);
 __decorate([
     IsString(),
     IsNotEmpty(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "target_audience", void 0);
+], CreateDTO.prototype, "target_audience", void 0);
 __decorate([
     IsArray(),
     IsString({ each: true }),
     __metadata("design:type", Array)
-], CreateProjectRequestDTO.prototype, "requirements", void 0);
+], CreateDTO.prototype, "requirements", void 0);
 __decorate([
     IsString(),
     IsNotEmpty(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "name", void 0);
+], CreateDTO.prototype, "name", void 0);
 __decorate([
     IsEmail(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "email", void 0);
+], CreateDTO.prototype, "email", void 0);
 __decorate([
     IsString(),
     IsNotEmpty(),
     __metadata("design:type", String)
-], CreateProjectRequestDTO.prototype, "phone", void 0);
-//# sourceMappingURL=create-project-request.dto.js.map
+], CreateDTO.prototype, "phone", void 0);
+//# sourceMappingURL=project-request.dto.js.map

@@ -11,19 +11,20 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 import { ProjectRequestsService } from './project-requests.service.js';
-import { CreateProjectRequestDTO } from './dto/create-project-request.dto.js';
-import { Body, Controller, Post } from '@nestjs/common';
+import { CreateDTO } from './dto/project-request.dto.js';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { Public } from '../../core/jwt/guard/auth.js';
+import { QueryDTO } from '../../shares/repo/dto/query.dto.js';
 let ProjectRequestsController = class ProjectRequestsController {
     service;
     constructor(service) {
         this.service = service;
     }
-    async create(body) {
-        const projectRequest = await this.service.create(body);
-        return {
-            data: projectRequest,
-        };
+    create(body) {
+        return this.service.create(body);
+    }
+    findAll(query) {
+        return this.service.findAll(query);
     }
 };
 __decorate([
@@ -31,9 +32,16 @@ __decorate([
     Post(),
     __param(0, Body()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [CreateProjectRequestDTO]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:paramtypes", [CreateDTO]),
+    __metadata("design:returntype", void 0)
 ], ProjectRequestsController.prototype, "create", null);
+__decorate([
+    Get(),
+    __param(0, Query()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [QueryDTO]),
+    __metadata("design:returntype", void 0)
+], ProjectRequestsController.prototype, "findAll", null);
 ProjectRequestsController = __decorate([
     Controller('project-requests'),
     __metadata("design:paramtypes", [ProjectRequestsService])

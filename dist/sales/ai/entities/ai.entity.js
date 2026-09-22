@@ -11,6 +11,7 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateCol
 let SalesAI = class SalesAI {
     id;
     gemini_interaction_id;
+    awaiting_confirmation;
     created_at;
     updated_at;
 };
@@ -22,6 +23,10 @@ __decorate([
     Column({ nullable: true }),
     __metadata("design:type", String)
 ], SalesAI.prototype, "gemini_interaction_id", void 0);
+__decorate([
+    Column({ default: false }),
+    __metadata("design:type", Boolean)
+], SalesAI.prototype, "awaiting_confirmation", void 0);
 __decorate([
     CreateDateColumn(),
     __metadata("design:type", Date)

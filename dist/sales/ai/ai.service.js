@@ -33,9 +33,34 @@ let AiService = class AiService {
     }
     async sendMessage(conversation_id, content) {
         const conversation = await this.repo.findOneBy(SalesAI, { id: conversation_id });
+        if (!conversation)
+            throw new Error('Sales AI conversation not found');
         const userMessage = await this.repo.save(SalesAIMessage, { conversation_id, role: 'user', content });
+        if (conversation.awaiting_confirmation) {
+            const interactionId = conversation.gemini_interaction_id;
+            if (!interactionId)
+                throw new Error('Conversation is awaiting confirmation but gemini_interaction_id is missing');
+            const confirmation = await this.gemini.detectProjectConfirmation(interactionId, content);
+            if (confirmation.confirmed) {
+                const requirements = await this.gemini.extractProjectRequirements(interactionId);
+                await this.repo.update(SalesAI, { id: conversation_id }, {
+                    gemini_interaction_id: requirements.interaction.id,
+                    awaiting_confirmation: false,
+                });
+                return {
+                    conversation_id,
+                    interaction_id: requirements.interaction.id,
+                    user_message: userMessage,
+                    model_message: null,
+                    next_action: {
+                        type: 'project_request_form',
+                        data: requirements.data,
+                    },
+                };
+            }
+        }
         let response = await this.gemini.generate(content, conversation.gemini_interaction_id ?? undefined);
-        const MAX_FUNCTION_CALLS = 5;
+        const MAX_FUNCTION_CALLS = 3;
         let functionCallCount = 0;
         while (true) {
             const functionCalls = response.steps.filter((step) => step.type === 'function_call');
@@ -55,32 +80,21 @@ let AiService = class AiService {
                 response = await this.gemini.continueWithFunctionResult(response.id, functionCall.name, functionCall.id, result);
             }
         }
-        const confirmation = await this.gemini.detectProjectConfirmation(response.id, content);
-        if (confirmation.confirmed) {
-            const requirements = await this.gemini.extractProjectRequirements(response.id);
-            await this.repo.update(SalesAI, { id: conversation_id }, { gemini_interaction_id: requirements.interaction.id });
-            return {
-                conversation_id,
-                interaction_id: requirements.interaction.id,
-                user_message: userMessage,
-                model_message: null,
-                next_action: {
-                    type: 'project_request_form',
-                    data: requirements.data,
-                },
-            };
-        }
         const output = response.output_text?.trim() ?? '';
         if (!output)
             throw new Error('Gemini returned an empty response');
+        const awaitingConfirmation = this.isAwaitingConfirmation(output);
         const modelMessage = await this.repo.save(SalesAIMessage, { conversation_id, role: 'model', content: output });
-        await this.repo.update(SalesAI, { id: conversation_id }, { gemini_interaction_id: response.id });
+        await this.repo.update(SalesAI, { id: conversation_id }, { gemini_interaction_id: response.id, awaiting_confirmation: awaitingConfirmation });
         return {
             conversation_id,
             interaction_id: response.id,
             user_message: userMessage,
             model_message: modelMessage,
         };
+    }
+    isAwaitingConfirmation(output) {
+        return output.toLowerCase().includes('silakan ketik "iya, sudah sesuai" untuk melanjutkan.');
     }
     getMessages(conversation_id) {
         return this.repo.find(SalesAIMessage, { where: { conversation_id }, order: { created_at: 'ASC' } });

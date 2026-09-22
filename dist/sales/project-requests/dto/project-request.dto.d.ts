@@ -1,4 +1,4 @@
-export declare class CreateProjectRequestDTO {
+export declare class CreateDTO {
     business: string;
     goal: string;
     target_audience: string;

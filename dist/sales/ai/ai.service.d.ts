@@ -27,5 +27,6 @@ export declare class AiService {
         model_message: SalesAIMessage | SalesAIMessage[];
         next_action?: undefined;
     }>;
+    private isAwaitingConfirmation;
     getMessages(conversation_id: string): Promise<SalesAIMessage[]>;
 }

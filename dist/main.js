@@ -13,6 +13,7 @@ async function bootstrap() {
     const config = app.get(ConfigService);
     const init = config.get('app');
     app.use(compression({ threshold: 0, level: 9 }));
+    app.set('trust proxy', true);
     app.disable('x-powered-by');
     app.set('query parser', 'extended');
     app.use(cookieParser());
@@ -23,8 +24,7 @@ async function bootstrap() {
     app.useLogger(LOGGER);
     const middleware = app.get(RequestMiddleware);
     app.use((req, res, next) => middleware.use(req, res, next));
-    if (init?.env === 'dev')
-        app.enableShutdownHooks();
+    app.enableShutdownHooks();
     await app.listen(init?.port || 3000, async () => {
         LOGGER.log(`PID Number on ${process.pid}`);
         LOGGER.log(`===== Application on ${await app.getUrl()} =====`);

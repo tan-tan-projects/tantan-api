@@ -15,19 +15,19 @@ let ProjectRequestsService = class ProjectRequestsService {
     constructor(repo) {
         this.repo = repo;
     }
-    async create(data) {
-        const projectRequest = await this.repo.save(ProjectRequest, {
+    create(data) {
+        return this.repo.save(ProjectRequest, {
             business: data.business.trim(),
             goal: data.goal.trim(),
             target_audience: data.target_audience.trim(),
-            requirements: JSON.stringify(data.requirements
-                .map(value => value.trim())
-                .filter(Boolean)),
+            requirements: JSON.stringify(data.requirements.map(value => value.trim()).filter(Boolean)),
             name: data.name.trim(),
             email: data.email.trim(),
             phone: data.phone.trim(),
         });
-        return projectRequest;
+    }
+    findAll(query) {
+        return this.repo.findWithPagination(ProjectRequest, query);
     }
 };
 ProjectRequestsService = __decorate([

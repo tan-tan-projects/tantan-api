@@ -807,7 +807,7 @@ export declare class GeminiService {
             threshold: (string & {}) | "off" | "block_low_and_above" | "block_medium_and_above" | "block_only_high" | "block_none";
             type: (string & {}) | "hate_speech" | "dangerous_content" | "harassment" | "sexually_explicit" | "civic_integrity" | "image_hate" | "image_dangerous_content" | "image_harassment" | "image_sexually_explicit" | "jailbreak";
         }> | undefined;
-        service_tier?: ((string & {}) | "flex" | "standard" | "priority" | "deferred") | undefined;
+        service_tier?: ((string & {}) | "priority" | "flex" | "standard" | "deferred") | undefined;
         status: (string & {}) | "in_progress" | "requires_action" | "completed" | "failed" | "cancelled" | "incomplete" | "budget_exceeded" | "queued";
         steps?: Array<{
             arguments: {
@@ -2600,7 +2600,7 @@ export declare class GeminiService {
             threshold: (string & {}) | "off" | "block_low_and_above" | "block_medium_and_above" | "block_only_high" | "block_none";
             type: (string & {}) | "hate_speech" | "dangerous_content" | "harassment" | "sexually_explicit" | "civic_integrity" | "image_hate" | "image_dangerous_content" | "image_harassment" | "image_sexually_explicit" | "jailbreak";
         }> | undefined;
-        service_tier?: ((string & {}) | "flex" | "standard" | "priority" | "deferred") | undefined;
+        service_tier?: ((string & {}) | "priority" | "flex" | "standard" | "deferred") | undefined;
         status: (string & {}) | "in_progress" | "requires_action" | "completed" | "failed" | "cancelled" | "incomplete" | "budget_exceeded" | "queued";
         steps?: Array<{
             arguments: {
@@ -4394,7 +4394,7 @@ export declare class GeminiService {
                 threshold: (string & {}) | "off" | "block_low_and_above" | "block_medium_and_above" | "block_only_high" | "block_none";
                 type: (string & {}) | "hate_speech" | "dangerous_content" | "harassment" | "sexually_explicit" | "civic_integrity" | "image_hate" | "image_dangerous_content" | "image_harassment" | "image_sexually_explicit" | "jailbreak";
             }> | undefined;
-            service_tier?: ((string & {}) | "flex" | "standard" | "priority" | "deferred") | undefined;
+            service_tier?: ((string & {}) | "priority" | "flex" | "standard" | "deferred") | undefined;
             status: (string & {}) | "in_progress" | "requires_action" | "completed" | "failed" | "cancelled" | "incomplete" | "budget_exceeded" | "queued";
             steps?: Array<{
                 arguments: {
@@ -6190,7 +6190,7 @@ export declare class GeminiService {
                 threshold: (string & {}) | "off" | "block_low_and_above" | "block_medium_and_above" | "block_only_high" | "block_none";
                 type: (string & {}) | "hate_speech" | "dangerous_content" | "harassment" | "sexually_explicit" | "civic_integrity" | "image_hate" | "image_dangerous_content" | "image_harassment" | "image_sexually_explicit" | "jailbreak";
             }> | undefined;
-            service_tier?: ((string & {}) | "flex" | "standard" | "priority" | "deferred") | undefined;
+            service_tier?: ((string & {}) | "priority" | "flex" | "standard" | "deferred") | undefined;
             status: (string & {}) | "in_progress" | "requires_action" | "completed" | "failed" | "cancelled" | "incomplete" | "budget_exceeded" | "queued";
             steps?: Array<{
                 arguments: {

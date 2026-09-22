@@ -41,6 +41,7 @@ let GeminiService = class GeminiService {
             ...(previousInteractionId
                 ? { previous_interaction_id: previousInteractionId }
                 : {}),
+            service_tier: 'priority'
         });
         return interaction;
     }

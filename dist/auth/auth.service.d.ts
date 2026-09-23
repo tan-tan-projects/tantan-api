@@ -21,6 +21,8 @@ export declare class AuthService {
     constructor(config: ConfigService, repo: RepoService, jwtService: JwtService, logger: LoggerService);
     login(state: string): string;
     getCookie(req: Request, name: string, redirect?: boolean): string | undefined;
+    createMobileAuthCode(accessToken: string): Promise<string>;
+    consumeMobileAuthCode(code: string): Promise<string | null>;
     private generateToken;
     callback(req: Request): Promise<{
         access_token: string;

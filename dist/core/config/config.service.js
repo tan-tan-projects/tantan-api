@@ -8,6 +8,7 @@ import { SalesAI } from "../../sales/ai/entities/ai.entity.js";
 import { SalesAIMessage } from "../../sales/ai/entities/message.entity.js";
 import { ProjectRequest } from "../../sales/project-requests/entities/project-request.entity.js";
 import { SecurityRule } from "../security/entity/security-rule.entity.js";
+import { MobileAuthCode } from "../../sessions/entities/mobile-auth-code.entity.js";
 export default () => {
     const databaseDefault = {
         type: 'google-sheets',
@@ -17,7 +18,7 @@ export default () => {
         },
         synchronize: String(process.env.GOOGLE_SHEETS_DB_SYNC) === 'true',
     };
-    const coreEntities = [User, Resource, Session, SecurityRule, Portfolio, SalesAI];
+    const coreEntities = [User, Resource, Session, MobileAuthCode, SecurityRule, Portfolio, SalesAI];
     const appEntities = [CorsOrigin, Monitoring, SalesAIMessage, ProjectRequest];
     return {
         app: {

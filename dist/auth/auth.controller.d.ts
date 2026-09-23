@@ -12,6 +12,13 @@ export declare class AuthController {
         success: boolean;
         message: string;
     }>;
+    exchange(code: string, res: Response): Promise<{
+        success: boolean;
+        message: string;
+    } | {
+        success: boolean;
+        message?: undefined;
+    }>;
     me(user: JwtPayload): Promise<{
         success: boolean;
         result: import("../users/entities/user.entity.js").User;

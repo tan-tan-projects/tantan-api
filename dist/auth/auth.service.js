@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import ms from 'ms';
 import { OAuth2Client } from 'google-auth-library';
 import { RepoService } from '../shares/repo/repo.service.js';
@@ -19,6 +19,7 @@ import { User } from '../users/entities/user.entity.js';
 import { LoggerService } from '../core/logger/logger.service.js';
 import { UtilsService } from '../shares/utils/utils.service.js';
 import { Raw } from 'typeorm';
+import { MobileAuthCode } from '../sessions/entities/mobile-auth-code.entity.js';
 let AuthService = class AuthService {
     config;
     repo;
@@ -62,6 +63,25 @@ let AuthService = class AuthService {
             return undefined;
         const value = cookies[0].slice(name.length + 1);
         return redirect ? decodeURIComponent(value) : value;
+    }
+    async createMobileAuthCode(accessToken) {
+        const code = randomBytes(32).toString('hex');
+        await this.repo.getRepository(MobileAuthCode).save({
+            code,
+            access_token: accessToken,
+            expires_at: new Date(Date.now() + 60_000),
+        });
+        return code;
+    }
+    async consumeMobileAuthCode(code) {
+        const repository = this.repo.getRepository(MobileAuthCode);
+        const data = await repository.findOne({ where: { code } });
+        if (!data)
+            return null;
+        await repository.delete({ id: data.id });
+        if (data.expires_at.getTime() < Date.now())
+            return null;
+        return data.access_token;
     }
     async generateToken(user) {
         try {

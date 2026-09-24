@@ -12,6 +12,7 @@ import { Injectable } from '@nestjs/common';
 import { RepoService } from '../../shares/repo/repo.service.js';
 import { Monitoring } from './entities/monitoring.entity.js';
 import { LoggerService } from '../logger/logger.service.js';
+import { IpGeolocation } from './entities/ip-geolocation.entity.js';
 let MonitoringService = MonitoringService_1 = class MonitoringService {
     repo;
     LOGGER;
@@ -19,13 +20,51 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
         this.repo = repo;
         this.LOGGER = logger.create(MonitoringService_1.name);
     }
-    create(dto) {
+    async create(dto) {
         try {
-            return this.repo.save(Monitoring, dto);
+            const repo = this.repo.getRepository(Monitoring);
+            const result = repo.create(dto);
+            await this.getIpGeolocation(result.ip);
+            return this.repo.save(Monitoring, result);
         }
         catch (error) {
-            this.LOGGER.error(error instanceof Error ? error.message : String(error));
-            return null;
+            this.LOGGER.error({
+                name: 'monitoring',
+                message: error instanceof Error ? error.stack : error
+            });
+        }
+    }
+    async getIpGeolocation(ip) {
+        const repo = this.repo.getRepository(IpGeolocation);
+        const existing = await repo.findOne({ where: { ip } });
+        if (existing)
+            return existing;
+        try {
+            const response = await fetch(`https://ipwhois.app/json/${encodeURIComponent(ip)}`);
+            if (!response.ok)
+                throw new Error(`IPWhois request failed: ${response.status} ${response.statusText}`);
+            const data = await response.json();
+            if (!data?.success)
+                throw new Error(data?.message || 'IP geolocation lookup failed');
+            return await repo.save({
+                ip,
+                country: data.country,
+                country_code: data.country_code,
+                region: data.region,
+                city: data.city,
+                latitude: data.latitude,
+                longitude: data.longitude,
+                isp: data.isp,
+                organization: data.org,
+                asn: data.asn,
+                timezone: data.timezone?.id
+            });
+        }
+        catch (error) {
+            this.LOGGER.error({
+                name: 'ip-geolocation',
+                message: error instanceof Error ? error.stack : error
+            });
         }
     }
     async findRecent() {

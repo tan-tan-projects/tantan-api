@@ -65,23 +65,6 @@ let AuthController = class AuthController {
         }
         try {
             const { access_token } = await this.service.callback(req);
-            const isMobile = redirect.startsWith('tantan-dashboard://auth/callback');
-            if (isMobile) {
-                const code = await this.service.createMobileAuthCode(access_token);
-                res.clearCookie('oauth_state', {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'lax',
-                    path: '/',
-                });
-                res.clearCookie('oauth_redirect', {
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: 'lax',
-                    path: '/',
-                });
-                return res.redirect(302, `tantan-dashboard://auth/callback?code=${encodeURIComponent(code)}`);
-            }
             res.clearCookie('oauth_state', {
                 httpOnly: true,
                 secure: true,
@@ -128,32 +111,6 @@ let AuthController = class AuthController {
             }
             return res.redirect(302, url.toString());
         }
-    }
-    async exchange(code, res) {
-        if (!code) {
-            res.statusCode = 400;
-            return {
-                success: false,
-                message: 'Missing code',
-            };
-        }
-        const accessToken = await this.service.consumeMobileAuthCode(code);
-        if (!accessToken) {
-            res.statusCode = 401;
-            return {
-                success: false,
-                message: 'Invalid or expired code',
-            };
-        }
-        res.cookie('authorization', accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            path: '/',
-        });
-        return {
-            success: true,
-        };
     }
     async googleMobile(idToken, res) {
         if (!idToken) {
@@ -209,16 +166,7 @@ __decorate([
 ], AuthController.prototype, "callback", null);
 __decorate([
     Public(),
-    Post('exchange'),
-    __param(0, Body('code')),
-    __param(1, Res({ passthrough: true })),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "exchange", null);
-__decorate([
-    Public(),
-    Post('google/mobile'),
+    Post('mobile'),
     __param(0, Body('idToken')),
     __param(1, Res({ passthrough: true })),
     __metadata("design:type", Function),

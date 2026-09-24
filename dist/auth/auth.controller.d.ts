@@ -12,13 +12,6 @@ export declare class AuthController {
         success: boolean;
         message: string;
     }>;
-    exchange(code: string, res: Response): Promise<{
-        success: boolean;
-        message: string;
-    } | {
-        success: boolean;
-        message?: undefined;
-    }>;
     googleMobile(idToken: string, res: Response): Promise<{
         success: boolean;
         message: string;

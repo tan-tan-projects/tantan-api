@@ -83,6 +83,34 @@ let AuthService = class AuthService {
             return null;
         return data.access_token;
     }
+    async getUser(email) {
+        try {
+            const now = new Date();
+            const user = await this.repo.getRepository(User).findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    is_active: true
+                },
+                where: {
+                    email,
+                    role: 'admin',
+                    expires_at: Raw((alias) => `(${alias} IS NULL OR ${alias} > :now)`, { now })
+                }
+            });
+            if (!user)
+                throw new HttpException('User not verified', HttpStatus.BAD_REQUEST);
+            if (!user.is_active)
+                throw new HttpException('User inactive', HttpStatus.BAD_REQUEST);
+            return user;
+        }
+        catch (error) {
+            error.__name = 'get-user';
+            throw error;
+        }
+    }
     async generateToken(user) {
         try {
             const jwtid = randomUUID();
@@ -141,31 +169,43 @@ let AuthService = class AuthService {
             if (!payload.email || payload.email_verified !== true) {
                 throw new HttpException('Google email is not verified', HttpStatus.BAD_REQUEST);
             }
-            const now = new Date();
-            const user = await this.repo.getRepository(User).findOne({
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    role: true,
-                    is_active: true
-                },
-                where: {
-                    email: payload.email,
-                    role: 'admin',
-                    expires_at: Raw((alias) => `(${alias} IS NULL OR ${alias} > :now)`, { now })
-                }
-            });
-            if (!user)
-                throw new HttpException('User not verified', HttpStatus.BAD_REQUEST);
-            if (!user.is_active)
-                throw new HttpException('User inactive', HttpStatus.BAD_REQUEST);
+            const user = await this.getUser(payload.email);
             const { access_token } = await this.generateToken(user);
             return { access_token, user };
         }
         catch (error) {
-            this.LOGGER.error('[OAuth callback error]');
-            this.LOGGER.error(error instanceof Error ? error.stack : error);
+            const name = error?.__name ?? 'callback';
+            this.LOGGER.error({
+                name,
+                message: error instanceof Error ? error.stack : error
+            });
+            throw error;
+        }
+    }
+    async googleMobileLogin(idToken) {
+        try {
+            const { clientId } = this.config.getOrThrow('oauth');
+            const googleClient = new OAuth2Client(clientId);
+            const ticket = await googleClient.verifyIdToken({ idToken, audience: clientId });
+            const payload = ticket.getPayload();
+            if (!payload)
+                throw new HttpException('Invalid Google identity', HttpStatus.UNAUTHORIZED);
+            if (!payload.sub)
+                throw new HttpException('Invalid Google identity', HttpStatus.UNAUTHORIZED);
+            if (!payload.email)
+                throw new HttpException('Google account has no email', HttpStatus.UNAUTHORIZED);
+            if (payload.email_verified !== true)
+                throw new HttpException('Google email is not verified', HttpStatus.UNAUTHORIZED);
+            const user = await this.getUser(payload.email);
+            const { access_token } = await this.generateToken(user);
+            return { access_token, user };
+        }
+        catch (error) {
+            const name = error?.__name ?? 'mobile-login';
+            this.LOGGER.error({
+                name,
+                message: error instanceof Error ? error.stack : error
+            });
             throw error;
         }
     }

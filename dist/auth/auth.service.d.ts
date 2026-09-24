@@ -23,8 +23,13 @@ export declare class AuthService {
     getCookie(req: Request, name: string, redirect?: boolean): string | undefined;
     createMobileAuthCode(accessToken: string): Promise<string>;
     consumeMobileAuthCode(code: string): Promise<string | null>;
+    private getUser;
     private generateToken;
     callback(req: Request): Promise<{
+        access_token: string;
+        user: JwtPayload;
+    }>;
+    googleMobileLogin(idToken: string): Promise<{
         access_token: string;
         user: JwtPayload;
     }>;

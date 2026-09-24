@@ -155,6 +155,25 @@ let AuthController = class AuthController {
             success: true,
         };
     }
+    async googleMobile(idToken, res) {
+        if (!idToken) {
+            res.statusCode = 400;
+            return {
+                success: false,
+                message: 'Missing ID token',
+            };
+        }
+        const { access_token } = await this.service.googleMobileLogin(idToken);
+        res.cookie('authorization', access_token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
+        });
+        return {
+            success: true,
+        };
+    }
     me(user) {
         return this.service.me(user);
     }
@@ -197,6 +216,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "exchange", null);
+__decorate([
+    Public(),
+    Post('google/mobile'),
+    __param(0, Body('idToken')),
+    __param(1, Res({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleMobile", null);
 __decorate([
     Get('me'),
     __param(0, CUser()),

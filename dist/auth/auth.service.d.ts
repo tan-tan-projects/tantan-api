@@ -16,7 +16,6 @@ export declare class AuthService {
     readonly config: ConfigService;
     readonly repo: RepoService;
     readonly jwtService: JwtService;
-    private utils;
     private LOGGER;
     constructor(config: ConfigService, repo: RepoService, jwtService: JwtService, logger: LoggerService);
     login(state: string): string;
@@ -29,7 +28,10 @@ export declare class AuthService {
     }>;
     googleMobileLogin(idToken: string): Promise<{
         access_token: string;
-        user: JwtPayload;
+        code?: string;
+    }>;
+    exchange(code: string): Promise<{
+        access_token: string;
     }>;
     me(user: JwtPayload): Promise<{
         success: boolean;

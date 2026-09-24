@@ -15,8 +15,19 @@ export declare class AuthController {
     googleMobile(idToken: string, res: Response): Promise<{
         success: boolean;
         message: string;
+        code?: undefined;
     } | {
         success: boolean;
+        code: string | undefined;
+        message?: undefined;
+    }>;
+    exchange(code: string, res: Response): Promise<{
+        success: boolean;
+        message: string;
+        code?: undefined;
+    } | {
+        success: boolean;
+        code: string;
         message?: undefined;
     }>;
     me(user: JwtPayload): Promise<{

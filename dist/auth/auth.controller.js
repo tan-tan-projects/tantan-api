@@ -120,16 +120,31 @@ let AuthController = class AuthController {
                 message: 'Missing ID token',
             };
         }
-        const { access_token } = await this.service.googleMobileLogin(idToken);
+        const { access_token, code } = await this.service.googleMobileLogin(idToken);
         res.cookie('authorization', access_token, {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
             path: '/',
         });
-        return {
-            success: true,
-        };
+        return { success: true, code };
+    }
+    async exchange(code, res) {
+        if (!code) {
+            res.statusCode = 400;
+            return {
+                success: false,
+                message: 'Invalid code',
+            };
+        }
+        const { access_token } = await this.service.exchange(code);
+        res.cookie('authorization', access_token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/',
+        });
+        return { success: true, code };
     }
     me(user) {
         return this.service.me(user);
@@ -173,6 +188,15 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleMobile", null);
+__decorate([
+    Public(),
+    Post('exchange'),
+    __param(0, Body('code')),
+    __param(1, Res({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "exchange", null);
 __decorate([
     Get('me'),
     __param(0, CUser()),

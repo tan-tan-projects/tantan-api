@@ -10,27 +10,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import ms from 'ms';
 import { OAuth2Client } from 'google-auth-library';
 import { RepoService } from '../shares/repo/repo.service.js';
 import { Session } from '../sessions/entities/session.entity.js';
 import { User } from '../users/entities/user.entity.js';
 import { LoggerService } from '../core/logger/logger.service.js';
-import { UtilsService } from '../shares/utils/utils.service.js';
 import { Raw } from 'typeorm';
+import { MobileAuthCode } from '../sessions/entities/mobile-auth-code.entity.js';
 let AuthService = class AuthService {
     config;
     repo;
     jwtService;
-    utils;
     LOGGER;
     constructor(config, repo, jwtService, logger) {
         this.config = config;
         this.repo = repo;
         this.jwtService = jwtService;
         this.LOGGER = logger.create('Middleware');
-        this.utils = new UtilsService(logger);
     }
     login(state) {
         try {
@@ -91,7 +89,7 @@ let AuthService = class AuthService {
             throw error;
         }
     }
-    async generateToken(user) {
+    async generateToken(user, isMobile = false) {
         try {
             const jwtid = randomUUID();
             const { secret, expiresIn } = this.config.getOrThrow('jwt');
@@ -104,6 +102,14 @@ let AuthService = class AuthService {
             const access_token = this.jwtService.sign(payload, { jwtid, secret, expiresIn });
             const expires_at = new Date(Date.now() + ms(expiresIn));
             await this.repo.getRepository(Session).save({ userId: payload.id, jti: jwtid, expires_at });
+            if (isMobile) {
+                const { code } = await this.repo.getRepository(MobileAuthCode).save({
+                    code: randomBytes(32).toString('hex'),
+                    access_token,
+                    expires_at
+                });
+                return { access_token, code };
+            }
             return { access_token };
         }
         catch (error) {
@@ -177,13 +183,31 @@ let AuthService = class AuthService {
             if (payload.email_verified !== true)
                 throw new HttpException('Google email is not verified', HttpStatus.UNAUTHORIZED);
             const user = await this.getUser(payload.email);
-            const { access_token } = await this.generateToken(user);
-            return { access_token, user };
+            const { access_token, code } = await this.generateToken(user, true);
+            return { access_token, code };
         }
         catch (error) {
             const name = error?.__name ?? 'mobile-login';
             this.LOGGER.error({
                 name,
+                message: error instanceof Error ? error.stack : error
+            });
+            throw error;
+        }
+    }
+    async exchange(code) {
+        try {
+            const { clientId } = this.config.getOrThrow('oauth');
+            if (!clientId)
+                throw new HttpException('Invalid Google identity', HttpStatus.UNAUTHORIZED);
+            const data = await this.repo.findOne(MobileAuthCode, { where: { code } }, true);
+            if (!data || !data?.access_token)
+                throw new HttpException('Invalid identity user', HttpStatus.UNAUTHORIZED);
+            return { access_token: data.access_token };
+        }
+        catch (error) {
+            this.LOGGER.error({
+                name: 'exchange',
                 message: error instanceof Error ? error.stack : error
             });
             throw error;

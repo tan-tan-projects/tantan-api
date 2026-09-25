@@ -40,25 +40,13 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
         if (existing)
             return existing;
         try {
-            const response = await fetch(`https://ipwhois.app/json/${encodeURIComponent(ip)}`);
+            const response = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`);
             if (!response.ok)
                 throw new Error(`IPWhois request failed: ${response.status} ${response.statusText}`);
             const data = await response.json();
             if (!data?.success)
                 throw new Error(data?.message || 'IP geolocation lookup failed');
-            return await repo.save({
-                ip,
-                country: data.country,
-                country_code: data.country_code,
-                region: data.region,
-                city: data.city,
-                latitude: data.latitude,
-                longitude: data.longitude,
-                isp: data.isp,
-                organization: data.org,
-                asn: data.asn,
-                timezone: data.timezone?.id
-            });
+            return await this.createIpGeo({ ip, ...data });
         }
         catch (error) {
             this.LOGGER.error({
@@ -66,6 +54,39 @@ let MonitoringService = MonitoringService_1 = class MonitoringService {
                 message: error instanceof Error ? error.stack : error
             });
         }
+    }
+    async createIpGeo(dto) {
+        return await this.repo.save(IpGeolocation, {
+            ip: dto.ip,
+            country: dto.country,
+            country_code: dto.country_code,
+            region: dto.region,
+            city: dto.city,
+            latitude: dto.latitude,
+            longitude: dto.longitude,
+            isp: dto?.connection?.isp,
+            organization: dto?.connection?.org,
+            asn: dto?.connection?.asn,
+            timezone: dto.timezone?.current_time,
+        });
+    }
+    ipGeoFindall(query) {
+        return this.repo.findWithPagination(IpGeolocation, query);
+    }
+    ipGeoFindOne(id) {
+        return this.repo.findOne(IpGeolocation, { where: { id } });
+    }
+    async optionsIp() {
+        const monitoringIps = await this.repo.getRepository(Monitoring)
+            .createQueryBuilder('monitoring')
+            .select('monitoring.ip', 'ip')
+            .where('monitoring.ip IS NOT NULL')
+            .distinct(true)
+            .orderBy('monitoring.ip', 'ASC')
+            .getRawMany();
+        const geolocationIps = await this.repo.find(IpGeolocation, { select: { ip: true } });
+        const existingIps = new Set(geolocationIps.map((item) => item.ip));
+        return [...new Set(monitoringIps.map((item) => item.ip).filter((ip) => !existingIps.has(ip)))];
     }
     async findRecent() {
         return await this.repo.find(Monitoring, { order: { created_at: 'DESC' }, take: 10 });
